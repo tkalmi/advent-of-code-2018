@@ -17,21 +17,43 @@ def get_grid(serial):
     return grid
 
 
-def get_largest_square(grid):
+lookup_table = [[0 for __ in range(0, 300)] for _ in range(0, 300)]
+lookup_table_size = 0
+
+
+def get_largest_square(grid, size):
+    global lookup_table
+    global lookup_table_size
     largest = -math.inf
     largest_coord = (-1, -1)
-    for x_start in range(0, 298):
-        for y_start in range(0, 298):
-            square = 0
-            for x in range(x_start, x_start+3):
-                for y in range(y_start, y_start+3):
+    for x_start in range(0, 301-size):
+        for y_start in range(0, 301-size):
+            square = lookup_table[x_start][y_start]
+            for x in range(x_start+lookup_table_size, x_start+size):
+                square += sum(grid[x][y_start:y_start+size])
+            for y in range(y_start+lookup_table_size, y_start+size):
+                for x in range(x_start, x_start+lookup_table_size):
                     square += grid[x][y]
+            lookup_table[x_start][y_start] = square
             if square > largest:
                 largest = square
                 largest_coord = (x_start + 1, y_start + 1)
-    print('Largest square starts at', largest_coord)
+    lookup_table_size = size
+    return (largest, largest_coord)
 
 
 serial = 9445
 grid = get_grid(serial)
-get_largest_square(grid)
+
+largest = -math.inf
+largest_grid = (-1, -1, -1)
+for size in range(1, 301):
+    (square, (square_x, square_y)) = get_largest_square(grid, size)
+    if size is 3:
+        print('Largest square of size 3x3 starts at',
+              (square_x, square_y), 'Amount of fuel:', square)
+    if square > largest:
+        largest = square
+        largest_grid = (square_x, square_y, size)
+print('Largest grid of varying size is',
+      largest_grid, 'Amount of fuel:', largest)
